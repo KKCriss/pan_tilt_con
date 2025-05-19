@@ -34,6 +34,30 @@ LIDAR_HEADER = b'\xAA'   # 包头
 LIDAR_DATA_OFFSET = 10   # 数据起始偏移
 LIDAR_MAX_ATTEMPTS = 100 # 最大尝试次数
 
+def parse_data(data):
+    # 检查起始符
+    if data[0] != 0xAA:
+        print("Invalid data packet: Start byte not found.")
+        return []
+
+    measurements = []
+    # 从第11个字节开始解析每个测量数据点
+    for i in range(10, 195, 15):
+        if i + 15 < len(data):  # 确保不会越界
+            # 距离数据distance
+            distance1 = data[i + 1]
+            distance1 = hex(distance1)
+            interval1 = distance1[2:].upper()
+            str1 = str(interval1)
+            distance2 = data[i]
+            distance2 = hex(distance2)
+            interval2 = distance2[2:].upper()
+            str2 = str(interval2)
+            string1 = str1 + str2
+            distance = int(string1, 16)
+            measurements.append(distance)
+    return measurements
+
 def get_lidar_measurement(ser):
     raw_data = b""
     attempts = 0
@@ -44,16 +68,10 @@ def get_lidar_measurement(ser):
         if start_index != -1 and len(raw_data) - start_index >= LIDAR_PACKET_SIZE:
             packet = raw_data[start_index:start_index+LIDAR_PACKET_SIZE]
             raw_data = raw_data[start_index+LIDAR_PACKET_SIZE:]
-            measurements = []
-            data_list = list(packet)
-            for i in range(LIDAR_DATA_OFFSET, LIDAR_PACKET_SIZE, LIDAR_POINT_SIZE):
-                if i + 1 < len(data_list):
-                    high = data_list[i+1]
-                    low = data_list[i]
-                    distance = (high << 8) | low
-                    measurements.append(distance)
+            data_list = list(bytearray(packet))
+            measurements = parse_data(data_list)
             if measurements:
-                return sum(measurements) / len(measurements)
+                return sum(measurements) / float(len(measurements))
         attempts += 1
         time.sleep(0.05)
     raise TimeoutError("激光雷达数据读取超时")
