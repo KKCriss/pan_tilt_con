@@ -28,30 +28,35 @@ class BaseController:
         self.send_command(cmd)
 
 # ---------------------- 激光测距部分 ----------------------
+LIDAR_PACKET_SIZE = 195  # 数据包长度
+LIDAR_POINT_SIZE = 15    # 每个测距点长度
+LIDAR_HEADER = b'\xAA'   # 包头
+LIDAR_DATA_OFFSET = 10   # 数据起始偏移
+LIDAR_MAX_ATTEMPTS = 100 # 最大尝试次数
+
 def get_lidar_measurement(ser):
     raw_data = b""
-    while True:
+    attempts = 0
+    while attempts < LIDAR_MAX_ATTEMPTS:
         if ser.in_waiting > 0:
             raw_data += ser.read(ser.in_waiting)
-        start_index = raw_data.find(b'\xAA')
-        # 检查从起始字节开始是否有足够的字节数构成一个完整数据包（195字节）
-        if start_index != -1 and len(raw_data) - start_index>= 195:
-            packet = raw_data[start_index:start_index+195]
-            # 移除已处理的数据，防止原始数据无限增长
-            raw_data = raw_data[start_index+195:]
+        start_index = raw_data.find(LIDAR_HEADER)
+        if start_index != -1 and len(raw_data) - start_index >= LIDAR_PACKET_SIZE:
+            packet = raw_data[start_index:start_index+LIDAR_PACKET_SIZE]
+            raw_data = raw_data[start_index+LIDAR_PACKET_SIZE:]
             measurements = []
             data_list = list(packet)
-            # 从第11个字节开始，每15字节解析一个测量点
-            for i in range(10, 195, 15):
+            for i in range(LIDAR_DATA_OFFSET, LIDAR_PACKET_SIZE, LIDAR_POINT_SIZE):
                 if i + 1 < len(data_list):
                     high = data_list[i+1]
                     low = data_list[i]
                     distance = (high << 8) | low
                     measurements.append(distance)
             if measurements:
-                average_distance = sum(measurements) / len(measurements)
-                return average_distance
+                return sum(measurements) / len(measurements)
+        attempts += 1
         time.sleep(0.05)
+    raise TimeoutError("激光雷达数据读取超时")
 # ---------------------- 主流程 ----------------------
 if __name__ == '__main__':
     # 初始化云台控制（根据实际情况修改端口号）
