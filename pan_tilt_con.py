@@ -33,7 +33,7 @@ def get_lidar_measurement(ser):
     while True:
         if ser.in_waiting > 0:
             raw_data += ser.read(ser.in_waiting)
-            start_index = raw_data.find(b'\xAA')
+        start_index = raw_data.find(b'\xAA')
         # 检查从起始字节开始是否有足够的字节数构成一个完整数据包（195字节）
         if start_index != -1 and len(raw_data) - start_index>= 195:
             packet = raw_data[start_index:start_index+195]
@@ -83,11 +83,11 @@ if __name__ == '__main__':
             print(f"\n[Scan] Step {current_step}/{total_steps}，移动到 水平 {horiz_angle}°，垂直 {vert_angle}°")
             gimbal.move_gimbal(angle_x=horiz_angle, angle_y=vert_angle)
             time.sleep(1) # 等待云台到位并稳定
-            distance = get_lidar_measurement(lidar_ser)
-            print(f"[Scan] 角度 (H={horiz_angle}°, V={vert_angle}°) 测得平均距离：{distance:.2f} mm")
-            scan_data.append((horiz_angle, vert_angle, distance))
-            current_step += 1
-            time.sleep(0.5)
+    distance = get_lidar_measurement(lidar_ser)
+    print(f"[Scan] 角度 (H={horiz_angle}°, V={vert_angle}°) 测得平均距离：{distance:.2f} mm")
+    scan_data.append((horiz_angle, vert_angle, distance))
+    current_step += 1
+    time.sleep(0.5)
     # 关闭串口
     gimbal.close()
     lidar_ser.close()
