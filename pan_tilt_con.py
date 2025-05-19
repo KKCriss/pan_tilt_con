@@ -33,7 +33,7 @@ def get_lidar_measurement(ser):
     while True:
         if ser.in_waiting > 0:
             raw_data += ser.read(ser.in_waiting)
-        start_index = raw_data.find(b'\xAA')
+            start_index = raw_data.find(b'\xAA')
         # 检查从起始字节开始是否有足够的字节数构成一个完整数据包（195字节）
         if start_index != -1 and len(raw_data) - start_index>= 195:
             packet = raw_data[start_index:start_index+195]
