@@ -83,11 +83,11 @@ if __name__ == '__main__':
             print(f"\n[Scan] Step {current_step}/{total_steps}，移动到 水平 {horiz_angle}°，垂直 {vert_angle}°")
             gimbal.move_gimbal(angle_x=horiz_angle, angle_y=vert_angle)
             time.sleep(1) # 等待云台到位并稳定
-    distance = get_lidar_measurement(lidar_ser)
-    print(f"[Scan] 角度 (H={horiz_angle}°, V={vert_angle}°) 测得平均距离：{distance:.2f} mm")
-    scan_data.append((horiz_angle, vert_angle, distance))
-    current_step += 1
-    time.sleep(0.5)
+            distance = get_lidar_measurement(lidar_ser)
+            print(f"[Scan] 角度 (H={horiz_angle}°, V={vert_angle}°) 测得平均距离：{distance:.2f} mm")
+            scan_data.append((horiz_angle, vert_angle, distance))
+            current_step += 1
+            time.sleep(0.5)
     # 关闭串口
     gimbal.close()
     lidar_ser.close()
