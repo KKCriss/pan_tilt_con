@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D # 3D 绘图
 
 # ---------------------- 云台控制部分 -------------
 class BaseController:
-    def __init__(self, port='/dev/ttyUSB0', baudrate=115200):
+    def __init__(self, port='/dev/ttyUSB1', baudrate=115200):
         self.ser = serial.Serial(port, baudrate, timeout=1)
         print(f"[Gimbal] 已连接到 {port}")
     def send_command(self, command):
@@ -55,7 +55,7 @@ def get_lidar_measurement(ser):
 # ---------------------- 主流程 ----------------------
 if __name__ == '__main__':
     # 初始化云台控制（根据实际情况修改端口号）
-    gimbal = BaseController('/dev/ttyUSB0', 115200)
+    gimbal = BaseController('/dev/ttyUSB1', 115200)
     # 初始化激光雷达串口（根据实际情况修改端口号和波特率）
     try:
         lidar_ser = serial.Serial('/dev/ttyACM0', 230400, timeout=1)
