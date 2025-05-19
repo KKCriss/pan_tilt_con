@@ -71,54 +71,54 @@ if __name__ == '__main__':
     vert_end = 40# 垂直结束角
     vert_step = 2# 垂直步进
     wait_time = 1.5 # 每次云台运动后等待时间（秒）
-# 存储扫描数据，数据格式：(horiz_angle, vert_angle,distance)
-scan_data = []
-total_steps = ((horiz_end - horiz_start) // horiz_step + 1) * ((vert_end - vert_start) // vert_step + 1)
-current_step = 1
-print("开始3D扫描……")
-for vert_angle in range(vert_start, vert_end + 1, vert_step):
-    gimbal.move_gimbal(angle_x=horiz_start, angle_y=vert_angle)
-    time.sleep(5)
-    for horiz_angle in range(horiz_start, horiz_end + 1, horiz_step):
-        print(f"\n[Scan] Step {current_step}/{total_steps}，移动到 水平 {horiz_angle}°，垂直 {vert_angle}°")
-        gimbal.move_gimbal(angle_x=horiz_angle, angle_y=vert_angle)
-        time.sleep(1) # 等待云台到位并稳定
-        distance = get_lidar_measurement(lidar_ser)
-        print(f"[Scan] 角度 (H={horiz_angle}°, V={vert_angle}°) 测得平均距离：{distance:.2f} mm")
-        scan_data.append((horiz_angle, vert_angle, distance))
-        current_step += 1
-        time.sleep(0.5)
-# 关闭串口
-gimbal.close()
-lidar_ser.close()
-# ---------------------- 数据处理与可视化 --------------------
-if scan_data:
-    xs, ys, zs = [], [], []
-    for h_angle, v_angle, d in scan_data:
-        theta = math.radians(h_angle) # 水平角（方位角）
-        phi = math.radians(v_angle)# 垂直角（仰角）
-        # 球坐标转换为直角坐标
-        x = d * math.cos(phi) * math.cos(theta)
-        y = d * math.cos(phi) * math.sin(theta)
-        z = d * math.sin(phi)
-        xs.append(x)
-        ys.append(y)
-        zs.append(z)
-    # 绘制3D点云
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(xs, ys, zs, c='blue', marker='o', label='扫描点')
-    # 绘制传感器自身位置
-    ax.scatter(0, 0, 0, c='red', marker='^', s=100, label='传感器位置')
-    ax.set_xlabel('X 轴 (mm)')  
-    ax.set_ylabel('Y 轴 (mm)')
-    ax.set_zlabel('Z 轴 (mm)')
-    ax.set_title("3D 激光雷达点云")
-    ax.legend()
-    plt.show()
-    # 保存数据到文件
-    with open('scan_data.json', 'w') as f:
-        json.dump(scan_data, f, indent=4)
-    print("扫描数据已保存到 scan_data.json")
-else:
-    print("未采集到任何数据点")
+    # 存储扫描数据，数据格式：(horiz_angle, vert_angle,distance)
+    scan_data = []
+    total_steps = ((horiz_end - horiz_start) // horiz_step + 1) * ((vert_end - vert_start) // vert_step + 1)
+    current_step = 1
+    print("开始3D扫描……")
+    for vert_angle in range(vert_start, vert_end + 1, vert_step):
+        gimbal.move_gimbal(angle_x=horiz_start, angle_y=vert_angle)
+        time.sleep(5)
+        for horiz_angle in range(horiz_start, horiz_end + 1, horiz_step):
+            print(f"\n[Scan] Step {current_step}/{total_steps}，移动到 水平 {horiz_angle}°，垂直 {vert_angle}°")
+            gimbal.move_gimbal(angle_x=horiz_angle, angle_y=vert_angle)
+            time.sleep(1) # 等待云台到位并稳定
+            distance = get_lidar_measurement(lidar_ser)
+            print(f"[Scan] 角度 (H={horiz_angle}°, V={vert_angle}°) 测得平均距离：{distance:.2f} mm")
+            scan_data.append((horiz_angle, vert_angle, distance))
+            current_step += 1
+            time.sleep(0.5)
+    # 关闭串口
+    gimbal.close()
+    lidar_ser.close()
+    # ---------------------- 数据处理与可视化 --------------------
+    if scan_data:
+        xs, ys, zs = [], [], []
+        for h_angle, v_angle, d in scan_data:
+            theta = math.radians(h_angle) # 水平角（方位角）
+            phi = math.radians(v_angle)# 垂直角（仰角）
+            # 球坐标转换为直角坐标
+            x = d * math.cos(phi) * math.cos(theta)
+            y = d * math.cos(phi) * math.sin(theta)
+            z = d * math.sin(phi)
+            xs.append(x)
+            ys.append(y)
+            zs.append(z)
+        # 绘制3D点云
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(xs, ys, zs, c='blue', marker='o', label='扫描点')
+        # 绘制传感器自身位置
+        ax.scatter(0, 0, 0, c='red', marker='^', s=100, label='传感器位置')
+        ax.set_xlabel('X 轴 (mm)')  
+        ax.set_ylabel('Y 轴 (mm)')
+        ax.set_zlabel('Z 轴 (mm)')
+        ax.set_title("3D 激光雷达点云")
+        ax.legend()
+        plt.show()
+        # 保存数据到文件
+        with open('scan_data.json', 'w') as f:
+            json.dump(scan_data, f, indent=4)
+        print("扫描数据已保存到 scan_data.json")
+    else:
+        print("未采集到任何数据点")
